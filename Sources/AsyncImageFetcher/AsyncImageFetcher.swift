@@ -8,10 +8,12 @@
 import UIKit
 import Combine
 
+/// A LocalizedError related to image fetching.
 enum ImageFetchError: LocalizedError {
   case invalidData
   case invalidURL
 
+  /// The error description String.
   var errorDescription: String? {
     switch self {
     case .invalidData:
@@ -23,10 +25,13 @@ enum ImageFetchError: LocalizedError {
 }
 
 class AsyncImageFetcher {
+  /// The static cache in which to store remotely fetched images.
   static let cache = NSCache<NSString, AnyObject>()
 }
 
 extension UIImage {
+  /// Returns a publisher which fetches a UIImage from a URL.
+  /// - Parameter urlString: The URL (in String format) from which to fetch the image.
   static func load(from urlString: String) -> AnyPublisher<UIImage?, Error> {
     guard let url = URL(string: urlString) else {
       return Fail(error: ImageFetchError.invalidURL)

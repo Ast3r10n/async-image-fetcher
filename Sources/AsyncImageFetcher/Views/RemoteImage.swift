@@ -8,16 +8,31 @@
 import SwiftUI
 import Combine
 
+/// A view containing an image and an optional placeholder, asynchronously fetched from a URL.
 public struct RemoteImage: View {
+
+  /// The URL from which to fetch the image.
   @State public var url: String
+  /// The request timeout in seconds.
+  ///
+  /// Defaults to 3.
+  @State public var timeout = 3
+
+  /// The placeholder to apply while the request is running, or no image could be fetched.
+  ///
+  /// Defaults to an animated light gray background.
+  public var placeholder: (() -> AnyView)? = nil
+
   @State private var image: UIImage?
   @State private var placeholderOpacity = 0.2
   @State private var subscriptions: [AnyCancellable] = []
-  @State private var timeoutSeconds = 3
+
   private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
-  public var placeholder: (() -> AnyView)? = nil
-
+  /// Creates
+  /// - Parameters:
+  ///   - url: The URL from which to fetch the image.
+  ///   - placeholder: The placeholder to apply while the request is running, or no image could be fetched.
   public init(url: String, placeholder: (() -> AnyView)? = nil) {
     self._url = State(initialValue: url)
     self.placeholder = placeholder
@@ -33,9 +48,9 @@ public struct RemoteImage: View {
       } else {
         Color.black.opacity(placeholderOpacity)
           .onReceive(timer) { _ in
-            timeoutSeconds -= 1
+            timeout -= 1
 
-            if timeoutSeconds <= 0 {
+            if timeout <= 0 {
               subscriptions.first?.cancel()
               withAnimation(.easeInOut(duration: 1)) {
                 placeholderOpacity = 0.2
