@@ -6,37 +6,62 @@
 //
 
 import SwiftUI
+import Combine
 
-struct RemoteImage: View {
-  @State var url: String
+public struct RemoteImage: View {
+  @State public var url: String
   @State private var image: UIImage?
   @State private var placeholderOpacity = 0.2
+  @State private var subscriptions: [AnyCancellable] = []
+  @State private var timeoutSeconds = 3
   private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
-  var placeholder: (() -> AnyView)? = nil
+  public var placeholder: (() -> AnyView)? = nil
 
-  var body: some View {
-    if let image = image {
-      Image(uiImage: image)
-    } else if let placeholder = placeholder {
-      placeholder()
-    } else {
-      ZStack {
+  public init(url: String, placeholder: (() -> AnyView)? = nil) {
+    self._url = State(initialValue: url)
+    self.placeholder = placeholder
+  }
+
+  public var body: some View {
+    Group {
+      if let image = image {
+        Image(uiImage: image)
+          .resizable()
+      } else if let placeholder = placeholder {
+        placeholder()
+      } else {
         Color.black.opacity(placeholderOpacity)
           .onReceive(timer) { _ in
-            withAnimation(.easeInOut(duration: 1)) {
-              placeholderOpacity = placeholderOpacity == 0.2 ? 0.4 : 0.2
+            timeoutSeconds -= 1
+
+            if timeoutSeconds <= 0 {
+              subscriptions.first?.cancel()
+              withAnimation(.easeInOut(duration: 1)) {
+                placeholderOpacity = 0.2
+              }
+            } else {
+              withAnimation(.easeInOut(duration: 1)) {
+                placeholderOpacity = placeholderOpacity == 0.2 ? 0.4 : 0.2
+              }
             }
           }
-
-        Text("Loading...")
       }
+    }
+    .onAppear {
+      UIImage.load(from: url)
+        .sink(receiveCompletion: { [self] completion in
+          subscriptions.first?.cancel()
+        }, receiveValue: { [self] value in
+          image = value
+        })
+        .store(in: &subscriptions)
     }
   }
 }
 
-struct RemoteImage_Previews: PreviewProvider {
-  static var previews: some View {
+public struct RemoteImage_Previews: PreviewProvider {
+  public static var previews: some View {
     RemoteImage(url: "")
   }
 }
