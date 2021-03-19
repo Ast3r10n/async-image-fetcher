@@ -1,0 +1,30 @@
+name: tests
+
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: swift build -v
+  test:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run tests
+      run: swift test -v --enable-code-coverage
+    
+  codecov:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Generate coverage report
+      run: xcodebuild -scheme AsyncImageFetcher -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12 Pro' -enableCodeCoverage YES build test
+    - name: Codecov
+      uses: codecov/codecov-action@v1.0.5
+      with:
+        token: 638fc865-67b1-41c3-93fb-9f4f955eb9bf
+        # file: 
