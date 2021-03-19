@@ -3,20 +3,10 @@ name: tests
 on: [pull_request]
 
 jobs:
-  generate-xcode-proj:
-    runs-on: macos-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Generate Xcode project
-      run: swift package generate-xcodeproj
-    
   codecov:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Enable code coverage in the xcodeproj
-      run: sh swift-package-coverage.sh .
-
     - name: Generate coverage report
       run: xcodebuild -scheme AsyncImageFetcher -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12 Pro' -derivedDataPath build -enableCodeCoverage YES build test
       
