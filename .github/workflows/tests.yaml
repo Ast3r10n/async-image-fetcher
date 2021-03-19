@@ -14,10 +14,12 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Enable code coverage in the xcodeproj
+      run: sh swift-package-coverage.sh .
+
     - name: Generate coverage report
-      run: 
-      - xcodebuild -scheme AsyncImageFetcher -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12 Pro' -enableCodeCoverage YES build test
-      - sh swift-package-coverage.sh .
+      run: xcodebuild -scheme AsyncImageFetcher -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12 Pro' -enableCodeCoverage YES build test
+      
     - name: Codecov
       uses: codecov/codecov-action@v1.0.5
       with:
