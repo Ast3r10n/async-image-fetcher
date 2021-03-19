@@ -16,7 +16,7 @@ public struct RemoteImage: View {
   /// The request timeout in seconds.
   ///
   /// Defaults to 3.
-  @State public var timeout = 3
+  @State public var timeout: Int
 
   /// The placeholder to apply while the request is running, or no image could be fetched.
   ///
@@ -33,8 +33,9 @@ public struct RemoteImage: View {
   /// - Parameters:
   ///   - url: The URL from which to fetch the image.
   ///   - placeholder: The placeholder to apply while the request is running, or no image could be fetched.
-  public init(url: String, placeholder: (() -> AnyView)? = nil) {
+  public init(url: String, timeout: Int = 3, placeholder: (() -> AnyView)? = nil) {
     self._url = State(initialValue: url)
+    self._timeout = State(initialValue: timeout)
     self.placeholder = placeholder
   }
 
