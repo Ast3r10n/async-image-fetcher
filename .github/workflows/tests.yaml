@@ -8,7 +8,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Generate Xcode project
-      run: swift package generate-xcodeproj -v
+      run: swift package generate-xcodeproj
     
   codecov:
     runs-on: macos-latest
