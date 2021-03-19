@@ -6,37 +6,78 @@
 //
 
 import SwiftUI
+import Combine
 
-struct RemoteImage: View {
-  @State var url: String
+/// A view containing an image and an optional placeholder, asynchronously fetched from a URL.
+public struct RemoteImage: View {
+
+  /// The URL from which to fetch the image.
+  @State public var url: String
+  /// The request timeout in seconds.
+  ///
+  /// Defaults to 3.
+  @State public var timeout: Int
+
+  /// The placeholder to apply while the request is running, or no image could be fetched.
+  ///
+  /// Defaults to an animated light gray background.
+  public var placeholder: (() -> AnyView)? = nil
+
   @State private var image: UIImage?
   @State private var placeholderOpacity = 0.2
+  @State private var subscriptions: [AnyCancellable] = []
+
   private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
-  var placeholder: (() -> AnyView)? = nil
+  /// Creates
+  /// - Parameters:
+  ///   - url: The URL from which to fetch the image.
+  ///   - placeholder: The placeholder to apply while the request is running, or no image could be fetched.
+  public init(url: String, timeout: Int = 3, placeholder: (() -> AnyView)? = nil) {
+    self._url = State(initialValue: url)
+    self._timeout = State(initialValue: timeout)
+    self.placeholder = placeholder
+  }
 
-  var body: some View {
-    if let image = image {
-      Image(uiImage: image)
-    } else if let placeholder = placeholder {
-      placeholder()
-    } else {
-      ZStack {
+  public var body: some View {
+    Group {
+      if let image = image {
+        Image(uiImage: image)
+          .resizable()
+      } else if let placeholder = placeholder {
+        placeholder()
+      } else {
         Color.black.opacity(placeholderOpacity)
           .onReceive(timer) { _ in
-            withAnimation(.easeInOut(duration: 1)) {
-              placeholderOpacity = placeholderOpacity == 0.2 ? 0.4 : 0.2
+            timeout -= 1
+
+            if timeout <= 0 {
+              subscriptions.first?.cancel()
+              withAnimation(.easeInOut(duration: 1)) {
+                placeholderOpacity = 0.2
+              }
+            } else {
+              withAnimation(.easeInOut(duration: 1)) {
+                placeholderOpacity = placeholderOpacity == 0.2 ? 0.4 : 0.2
+              }
             }
           }
-
-        Text("Loading...")
       }
+    }
+    .onAppear {
+      UIImage.load(from: url)
+        .sink(receiveCompletion: { [self] completion in
+          subscriptions.first?.cancel()
+        }, receiveValue: { [self] value in
+          image = value
+        })
+        .store(in: &subscriptions)
     }
   }
 }
 
-struct RemoteImage_Previews: PreviewProvider {
-  static var previews: some View {
+public struct RemoteImage_Previews: PreviewProvider {
+  public static var previews: some View {
     RemoteImage(url: "")
   }
 }
