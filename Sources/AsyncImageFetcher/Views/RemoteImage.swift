@@ -15,7 +15,7 @@ public struct RemoteImage: View {
   @State public var url: String
   /// The request timeout in seconds.
   ///
-  /// Defaults to 3.
+  /// Defaults to 10.
   @State public var timeout: Int
 
   /// The placeholder to apply while the request is running, or no image could be fetched.
@@ -33,7 +33,7 @@ public struct RemoteImage: View {
   /// - Parameters:
   ///   - url: The URL from which to fetch the image.
   ///   - placeholder: The placeholder to apply while the request is running, or no image could be fetched.
-  public init(url: String, timeout: Int = 3, placeholder: (() -> AnyView)? = nil) {
+  public init(url: String, timeout: Int = 10, placeholder: (() -> AnyView)? = nil) {
     self._url = State(initialValue: url)
     self._timeout = State(initialValue: timeout)
     self.placeholder = placeholder
@@ -67,6 +67,15 @@ public struct RemoteImage: View {
     .onAppear {
       UIImage.load(from: url)
         .sink(receiveCompletion: { [self] completion in
+          switch completion {
+          case .failure(let error):
+            if error == ImageFetchError.invalidURL {
+              timeout = 0
+            }
+          default:
+            break
+          }
+          
           subscriptions.first?.cancel()
         }, receiveValue: { [self] value in
           image = value
