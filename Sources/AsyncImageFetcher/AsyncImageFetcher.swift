@@ -32,7 +32,7 @@ class AsyncImageFetcher {
 extension UIImage {
   /// Returns a publisher which fetches a UIImage from a URL.
   /// - Parameter urlString: The URL (in String format) from which to fetch the image.
-  static func load(from urlString: String) -> AnyPublisher<UIImage?, Error> {
+  static func load(from urlString: String) -> AnyPublisher<UIImage?, ImageFetchError> {
     guard let url = URL(string: urlString) else {
       return Fail(error: ImageFetchError.invalidURL)
         .eraseToAnyPublisher()
@@ -40,7 +40,7 @@ extension UIImage {
 
     if let cachedImage = AsyncImageFetcher.cache.object(forKey: NSString(string: urlString)) as? UIImage {
       return Just(cachedImage)
-        .setFailureType(to: Error.self)
+        .setFailureType(to: ImageFetchError.self)
         .eraseToAnyPublisher()
     }
 
@@ -59,6 +59,9 @@ extension UIImage {
           AsyncImageFetcher.cache.setObject(image, forKey: NSString(string: urlString))
         }
       })
+      .mapError { _ in
+        ImageFetchError.invalidData
+      }
       .eraseToAnyPublisher()
   }
 }
