@@ -47,7 +47,7 @@ public struct RemoteImage: View {
       } else if let placeholder = placeholder {
         placeholder()
       } else {
-        Color.black.opacity(placeholderOpacity)
+        Color.primary.opacity(placeholderOpacity)
           .onReceive(timer) { _ in
             timeout -= 1
 
@@ -76,8 +76,10 @@ public struct RemoteImage: View {
   }
 }
 
+#if DEBUG
 public struct RemoteImage_Previews: PreviewProvider {
   public static var previews: some View {
     RemoteImage(url: "")
   }
 }
+#endif
