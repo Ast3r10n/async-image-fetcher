@@ -8,6 +8,7 @@
 import SwiftUI
 import Combine
 
+#if canImport(SwiftUI)
 /// A view containing an image and an optional placeholder, asynchronously fetched from a URL.
 public struct RemoteImage: View {
 
@@ -91,4 +92,5 @@ public struct RemoteImage_Previews: PreviewProvider {
     RemoteImage(url: "")
   }
 }
+#endif
 #endif
