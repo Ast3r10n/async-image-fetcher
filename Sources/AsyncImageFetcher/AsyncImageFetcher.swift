@@ -9,12 +9,12 @@ import UIKit
 import Combine
 
 /// A LocalizedError related to image fetching.
-enum ImageFetchError: LocalizedError {
+public enum ImageFetchError: LocalizedError {
   case invalidData
   case invalidURL
 
   /// The error description String.
-  var errorDescription: String? {
+  public var errorDescription: String? {
     switch self {
     case .invalidData:
       return NSLocalizedString("Unable to fetch image from data", comment: "")
@@ -32,7 +32,7 @@ class AsyncImageFetcher {
 extension UIImage {
   /// Returns a publisher which fetches a UIImage from a URL.
   /// - Parameter urlString: The URL (in String format) from which to fetch the image.
-  static func load(from urlString: String) -> AnyPublisher<UIImage?, ImageFetchError> {
+  public static func load(from urlString: String) -> AnyPublisher<UIImage?, ImageFetchError> {
     guard let url = URL(string: urlString) else {
       return Fail(error: ImageFetchError.invalidURL)
         .eraseToAnyPublisher()
