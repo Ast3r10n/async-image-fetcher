@@ -32,13 +32,9 @@ class AsyncImageFetcher {
 extension UIImage {
   /// Returns a publisher which fetches a UIImage from a URL.
   /// - Parameter urlString: The URL (in String format) from which to fetch the image.
-  public static func load(from urlString: String) -> AnyPublisher<UIImage?, ImageFetchError> {
-    guard let url = URL(string: urlString) else {
-      return Fail(error: ImageFetchError.invalidURL)
-        .eraseToAnyPublisher()
-    }
+  public static func load(from url: URL) -> AnyPublisher<UIImage?, ImageFetchError> {
 
-    if let cachedImage = AsyncImageFetcher.cache.object(forKey: NSString(string: urlString)) as? UIImage {
+    if let cachedImage = AsyncImageFetcher.cache.object(forKey: NSString(string: url.absoluteString)) as? UIImage {
       return Just(cachedImage)
         .setFailureType(to: ImageFetchError.self)
         .eraseToAnyPublisher()
@@ -51,17 +47,28 @@ extension UIImage {
           throw ImageFetchError.invalidData
         }
 
-        AsyncImageFetcher.cache.setObject(image, forKey: NSString(string: urlString))
+        AsyncImageFetcher.cache.setObject(image, forKey: NSString(string: url.absoluteString))
         return image
       }
       .handleEvents(receiveOutput: { image in
         if let image = image {
-          AsyncImageFetcher.cache.setObject(image, forKey: NSString(string: urlString))
+          AsyncImageFetcher.cache.setObject(image, forKey: NSString(string: url.absoluteString))
         }
       })
       .mapError { _ in
         ImageFetchError.invalidData
       }
       .eraseToAnyPublisher()
+  }
+
+  /// Returns a publisher which fetches a UIImage from a URL.
+  /// - Parameter urlString: The URL (in String format) from which to fetch the image.
+  public static func load(from urlString: String) -> AnyPublisher<UIImage?, ImageFetchError> {
+    guard let url = URL(string: urlString) else {
+      return Fail(error: ImageFetchError.invalidURL)
+        .eraseToAnyPublisher()
+    }
+
+    return UIImage.load(from: url)
   }
 }
