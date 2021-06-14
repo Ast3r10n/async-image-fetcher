@@ -1,6 +1,6 @@
 //
 //  RemoteImage.swift
-//  Alkeon
+//
 //
 //  Created by Andrea Sacerdoti on 18/03/21.
 //
