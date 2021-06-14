@@ -5,10 +5,10 @@
 //  Created by Andrea Sacerdoti on 18/03/21.
 //
 
+#if canImport(SwiftUI)
 import SwiftUI
 import Combine
 
-#if canImport(SwiftUI)
 /// A view containing an image and an optional placeholder, asynchronously fetched from a URL.
 public struct RemoteImage: View {
 
