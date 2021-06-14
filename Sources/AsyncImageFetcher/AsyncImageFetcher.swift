@@ -43,12 +43,7 @@ extension UIImage {
     return URLSession.shared.dataTaskPublisher(for: url)
       .map(\.data)
       .tryCompactMap { data in
-        guard let image = UIImage(data: data) else {
-          throw ImageFetchError.invalidData
-        }
-
-        AsyncImageFetcher.cache.setObject(image, forKey: NSString(string: url.absoluteString))
-        return image
+        UIImage(data: data)
       }
       .handleEvents(receiveOutput: { image in
         if let image = image {
