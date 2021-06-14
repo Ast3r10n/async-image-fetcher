@@ -32,7 +32,7 @@ class AsyncImageFetcher {
 extension UIImage {
   /// Returns a publisher which fetches a UIImage from a URL.
   /// - Parameter urlString: The URL (in String format) from which to fetch the image.
-  public static func load(from url: URL) -> AnyPublisher<UIImage?, ImageFetchError> {
+  public static func load(from url: URL, compression: CGFloat? = nil) -> AnyPublisher<UIImage?, ImageFetchError> {
 
     if let cachedImage = AsyncImageFetcher.cache.object(forKey: NSString(string: url.absoluteString)) as? UIImage {
       return Just(cachedImage)
@@ -43,7 +43,14 @@ extension UIImage {
     return URLSession.shared.dataTaskPublisher(for: url)
       .map(\.data)
       .tryCompactMap { data in
-        UIImage(data: data)
+        let image = UIImage(data: data)
+        if let image = image,
+           let compression = compression,
+           let compressedData = image.jpegData(compressionQuality: compression) {
+          return UIImage(data: compressedData)
+        }
+
+        return image
       }
       .handleEvents(receiveOutput: { image in
         if let image = image {
@@ -58,12 +65,12 @@ extension UIImage {
 
   /// Returns a publisher which fetches a UIImage from a URL.
   /// - Parameter urlString: The URL (in String format) from which to fetch the image.
-  public static func load(from urlString: String) -> AnyPublisher<UIImage?, ImageFetchError> {
+  public static func load(from urlString: String, compression: CGFloat? = nil) -> AnyPublisher<UIImage?, ImageFetchError> {
     guard let url = URL(string: urlString) else {
       return Fail(error: ImageFetchError.invalidURL)
         .eraseToAnyPublisher()
     }
 
-    return UIImage.load(from: url)
+    return UIImage.load(from: url, compression: compression)
   }
 }
